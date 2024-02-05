@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34511.84
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MLDockerTrainer", "MLDockerTrainer\MLDockerTrainer.csproj", "{D27E1EE8-AA21-41D6-992E-5716A87BFE34}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D27E1EE8-AA21-41D6-992E-5716A87BFE34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D27E1EE8-AA21-41D6-992E-5716A87BFE34}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D27E1EE8-AA21-41D6-992E-5716A87BFE34}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D27E1EE8-AA21-41D6-992E-5716A87BFE34}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {272F1CE4-48CE-4673-A4CB-86C25328C4E0}
+	EndGlobalSection
+EndGlobal
