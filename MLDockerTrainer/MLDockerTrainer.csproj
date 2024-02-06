@@ -7,4 +7,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+    <PackageReference Include="CsvHelper" Version="30.1.0" />
+    <PackageReference Include="mzLib" Version="0.0.2" />
+    <PackageReference Include="TorchSharp" Version="0.101.5" />
+    <PackageReference Include="TorchSharp-cuda-linux" Version="0.101.5" />
+  </ItemGroup>
+
 </Project>
