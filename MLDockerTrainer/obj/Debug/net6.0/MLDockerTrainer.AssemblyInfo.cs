@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MLDockerTrainer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+27b5eb21167ae83509ce7d6e27669177ed118533")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6bca86e0344240b920c47765474ffff87c1cd913")]
 [assembly: System.Reflection.AssemblyProductAttribute("MLDockerTrainer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MLDockerTrainer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
