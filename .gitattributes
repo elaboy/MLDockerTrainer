@@ -17,3 +17,5 @@ bld/
 .vs
 *.cache
 *.vsidx
+
+*\obj
