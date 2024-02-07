@@ -1,8 +1,7 @@
-﻿using MachineLearning.TransformerComponents;
-using TorchSharp;
+﻿using TorchSharp;
 using TorchSharp.Modules;
 
-namespace MachineLearning.Transformer;
+namespace MLDockerTrainer.ModelComponents.Transformer;
 
 public class Decoder : torch.nn.Module<torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor>
 {

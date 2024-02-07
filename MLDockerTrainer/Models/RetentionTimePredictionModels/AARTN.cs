@@ -1,12 +1,21 @@
 ﻿using MachineLearning.Transformer;
 using MachineLearning.TransformerComponents;
 using TorchSharp;
+using Decoder = MLDockerTrainer.ModelComponents.Transformer.Decoder;
+using DecoderBlock = MLDockerTrainer.ModelComponents.Transformer.DecoderBlock;
+using Encoder = MLDockerTrainer.ModelComponents.Transformer.Encoder;
+using EncoderBlock = MLDockerTrainer.ModelComponents.Transformer.EncoderBlock;
+using FeedForwardBlock = MLDockerTrainer.ModelComponents.Transformer.FeedForwardBlock;
+using InputEmbeddings = MLDockerTrainer.ModelComponents.Transformer.InputEmbeddings;
+using MultiHeadAttentionBlock = MLDockerTrainer.ModelComponents.Transformer.MultiHeadAttentionBlock;
+using PositionalEncoder = MLDockerTrainer.ModelComponents.Transformer.PositionalEncoder;
+using ProjectionLayer = MLDockerTrainer.ModelComponents.Transformer.ProjectionLayer;
 
 namespace MachineLearning.RetentionTimePredictionModels
 {
     public static class AARTN
     {
-        public static TransformerComponents.Transformer EnsambleModel(int sourceVocabSize, int targetVocabSize,
+        public static MLDockerTrainer.ModelComponents.Transformer.Transformer EnsambleModel(int sourceVocabSize, int targetVocabSize,
             int sourceSequenceLength, int targetSequenceLength, int dModel = 512, int N = 6, int h = 8,
             double dropout = 0.1, int dFF = 2048)
         {
@@ -51,7 +60,7 @@ namespace MachineLearning.RetentionTimePredictionModels
             var projectionLayer = new ProjectionLayer(dModel, targetVocabSize);
 
             //Create the transformer
-            var transformer = new TransformerComponents.Transformer(encoder, decoder,
+            var transformer = new MLDockerTrainer.ModelComponents.Transformer.Transformer(encoder, decoder,
                 sourceEmbedding, targetEmbedding, sourcePosition,
                                targetPosition, projectionLayer);
 

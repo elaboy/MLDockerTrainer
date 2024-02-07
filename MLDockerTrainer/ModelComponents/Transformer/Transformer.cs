@@ -1,7 +1,6 @@
-﻿using MachineLearning.Transformer;
-using TorchSharp;
+﻿using TorchSharp;
 
-namespace MachineLearning.TransformerComponents
+namespace MLDockerTrainer.ModelComponents.Transformer
 {
     public class Transformer : torch.nn.Module<torch.Tensor, torch.Tensor>
     {

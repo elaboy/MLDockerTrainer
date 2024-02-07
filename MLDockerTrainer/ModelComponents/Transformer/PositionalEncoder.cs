@@ -1,9 +1,7 @@
-﻿using MathNet.Numerics;
-using TorchSharp;
+﻿using TorchSharp;
 using TorchSharp.Modules;
-using static TorchSharp.torch;
 
-namespace MachineLearning.TransformerComponents;
+namespace MLDockerTrainer.ModelComponents.Transformer;
 
 public class PositionalEncoder : torch.nn.Module<torch.Tensor, torch.Tensor>
 {

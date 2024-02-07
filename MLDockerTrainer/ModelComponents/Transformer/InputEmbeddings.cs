@@ -2,7 +2,7 @@
 using TorchSharp;
 using TorchSharp.Modules;
 
-namespace MachineLearning.TransformerComponents;
+namespace MLDockerTrainer.ModelComponents.Transformer;
 
 public class InputEmbeddings : torch.nn.Module<torch.Tensor, torch.Tensor>
 {

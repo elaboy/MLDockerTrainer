@@ -1,17 +1,20 @@
+using CsvHelper;
 using Easy.Common.Extensions;
 using Proteomics.PSM;
+using System.Globalization;
 using TorchSharp;
 
 namespace MLDockerTrainer.Utils;
+
 public static class TokenKit
 {
     //Current constant comments are refering to the VocabularyForTransformerUniprot_V2.csv file Token ids
-    public const string PADDING_TOKEN = "<PAD>";               //0
-    public const string RETENTION_TIME_START_TOKEN = "<RT>";   //1
+    public const string PADDING_TOKEN = "<PAD>"; //0
+    public const string RETENTION_TIME_START_TOKEN = "<RT>"; //1
     public const string END_OF_RETENTION_TIME_TOKEN = "</RT>"; //2
-    public const string END_OF_SEQUENCE_TOKEN = "<EOS>";       //3
-    public const string START_OF_SEQUENCE_TOKEN = "<SOS>";     //4
-    public const string MASKING_TOKEN = "<MASK>";              //5
+    public const string END_OF_SEQUENCE_TOKEN = "<EOS>"; //3
+    public const string START_OF_SEQUENCE_TOKEN = "<SOS>"; //4
+    public const string MASKING_TOKEN = "<MASK>"; //5
 
     public static List<string> TokenizeRetentionTimeWithFullSequence(PsmFromTsv psm)
     {
@@ -99,7 +102,8 @@ public static class TokenKit
         var tokens = new string[5];
         var retentionTimeAsString = retentionTime.ToString().Split('.');
         var integers = retentionTimeAsString[0];
-        var decimals = retentionTimeAsString.Count() == 2 ? retentionTimeAsString[1] : "00"; //if there is no decimal part, add 00
+        var decimals =
+            retentionTimeAsString.Count() == 2 ? retentionTimeAsString[1] : "00"; //if there is no decimal part, add 00
         if (integers.Length == 2)
         {
             tokens[0] = 0.ToString();
@@ -156,7 +160,8 @@ public static class TokenKit
         {
             integerList.RemoveAt(integerList.Count - 1); //remove end of sequence token
 
-            var padsToAdd = (desiredListLength - integerList.Count) - 1; //the -1 is to leave space for the end of sequence token
+            var padsToAdd =
+                (desiredListLength - integerList.Count) - 1; //the -1 is to leave space for the end of sequence token
 
             for (int i = 0; i < padsToAdd; i++)
             {
@@ -170,7 +175,7 @@ public static class TokenKit
     }
 
     public static (List<List<int>>, List<List<int>>, List<List<int>>) TrainValidateTestSplit(
-        List<List<int>> listOfTokenId, double trainingFraction = 0.8, 
+        List<List<int>> listOfTokenId, double trainingFraction = 0.8,
         double testingFraction = 0.1, double validationFraction = 0.1)
     {
         var randomizedData = listOfTokenId.Randomize().ToList();
@@ -189,5 +194,65 @@ public static class TokenKit
             .ToList();
 
         return (trainingSet, validationSet, testSet);
+    }
+
+    public static List<Token> GetVocab(string vocabPath)
+    {
+        List<Token> vocab = new();
+        using (var reader = new StreamReader(Path.Combine(vocabPath)))
+        using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+        {
+            vocab.AddRange(csv.GetRecords<Token>().ToList());
+        }
+
+        return vocab;
+    }
+
+    public static List<List<int>> Tokenize(List<List<string>> psms, List<Token> vocab)
+    {
+        List<List<int>> tokenizedPsms = new();
+
+        foreach (var tokenList in psms)
+        {
+            List<int> tokenIdList = new();
+
+            foreach (var token in tokenList)
+            {
+                if (vocab.Find(x => x.TokenWord == token) is null &&
+                    !token.Contains(
+                        '_')) //Checks if token is a number, if not clear list and break without adding to main list
+                {
+                    tokenIdList.Clear();
+                    break;
+                }
+
+                if (int.TryParse(token[0].ToString(),
+                        out var result)) //Takes care of retention time numbers and array positions
+                {
+                    foreach (var subString in token)
+                        tokenIdList.Add(vocab.Find(x => x.TokenWord == subString.ToString()).Id);
+                }
+                else
+                {
+                    if (vocab.Any(x =>
+                            x.TokenWord ==
+                            token)) //takes all the other non numerical tokens and adds their id to the list
+                    {
+                        tokenIdList.Add(vocab.Find(x => x.TokenWord == token).Id);
+                    }
+                }
+            }
+
+            if (tokenIdList.Count != 0) //Empty list is not added to main list
+                tokenIdList =
+                    PaddingIntegerList(tokenIdList, 0,
+                        100); //makes sure padding is done right with desired length
+            else
+                continue;
+
+            tokenizedPsms.Add(tokenIdList);
+        }
+
+        return tokenizedPsms;
     }
 }

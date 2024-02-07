@@ -1,8 +1,7 @@
-﻿using MachineLearning.Transformer;
-using TorchSharp;
+﻿using TorchSharp;
 using TorchSharp.Modules;
 
-namespace MachineLearning.TransformerComponents;
+namespace MLDockerTrainer.ModelComponents.Transformer;
 
 public class ResidualConnection : torch.nn.Module<torch.Tensor, Func<torch.Tensor, torch.Tensor>, torch.Tensor>
 {

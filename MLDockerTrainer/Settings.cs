@@ -2,11 +2,48 @@
 {
     public class Settings
     {
+        #region Model Parameters
+
         public string ModelToTrain { get; set; }
+
+        //if transformer, then: 
+        public string? VocabularyFilePath { get; set; }
+        public int? SourceVocabularySize { get; set; }
+        public int? TargetVocabularySize { get; set; }
+        public int? SourceSequenceLength { get; set; }
+        public int? TargetSequenceLength { get; set; }
+        public int? DModel { get; set; }
+        public int? N { get; set; }
+        public int? H { get; set; }
+        public double? Dropout { get; set; }
+        public int? DFF { get; set; }
+
+        #endregion
+
+        #region Data parameters
+
         public List<string> DataPath { get; set; }
         public int TrainingSplit { get; set; }
         public int ValidationSplit { get; set; }
         public int TestSplit { get; set; }
+        
+        #endregion
+
+        #region Training Parameters
+
+        public int BatchSize { get; set; }
+        public int Epochs { get; set; }
+        public double LearningRate { get; set; }
+        public bool UseLearnignRateScheduler { get; set; }
+        public double? LearningRateDecay { get; set; }
+        public int? LearningRateDecayStep { get; set; }
+
+        public bool UseEarlyStopping { get; set; }
+        public int? EarlyStoppingPatience { get; set; }
+
+        public bool SaveModelEachEpoch { get; set; }
+        //todo: expand this to include more parameters
+        #endregion
 
         public Settings(string path)
         {
@@ -16,14 +53,25 @@
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
+                    var key = "";
+                    var value = "";
+
                     var split = line.Split('=');
-                    if (split.Length != 2)
+
+                    if (split.Length == 1)
+                    {
+                        key = split[0].Trim();
+                        value = null;
+                    }
+                    else if (split.Length == 2)
+                    {
+                        key = split[0].Trim();
+                        value = split[1].Trim();
+                    }
+                    else
                     {
                         throw new Exception("Invalid settings file");
                     }
-
-                    var key = split[0].Trim();
-                    var value = split[1].Trim();
 
                     switch (key)
                     {

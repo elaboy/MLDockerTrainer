@@ -1,7 +1,7 @@
 ﻿using TorchSharp;
 using TorchSharp.Modules;
 
-namespace MachineLearning.TransformerComponents;
+namespace MLDockerTrainer.ModelComponents.Transformer;
 
 public class LayerNormalization : torch.nn.Module<torch.Tensor, torch.Tensor>
 {
