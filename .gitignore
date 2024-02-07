@@ -2,3 +2,17 @@
 *.vsidx
 *.cache
 *.editorconfig
+*.v2
+.vs/MLDockerTrainer/v17/.suo
+*.cache
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
