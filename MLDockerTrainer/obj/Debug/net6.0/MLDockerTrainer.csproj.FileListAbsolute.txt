@@ -1,6 +1,0 @@
-C:\Users\Edwin\Documents\GitHub\MLDockerTrainer\MLDockerTrainer\obj\Debug\net6.0\MLDockerTrainer.csproj.AssemblyReference.cache
-C:\Users\Edwin\Documents\GitHub\MLDockerTrainer\MLDockerTrainer\obj\Debug\net6.0\MLDockerTrainer.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\Edwin\Documents\GitHub\MLDockerTrainer\MLDockerTrainer\obj\Debug\net6.0\MLDockerTrainer.AssemblyInfoInputs.cache
-C:\Users\Edwin\Documents\GitHub\MLDockerTrainer\MLDockerTrainer\obj\Debug\net6.0\MLDockerTrainer.AssemblyInfo.cs
-C:\Users\Edwin\Documents\GitHub\MLDockerTrainer\MLDockerTrainer\obj\Debug\net6.0\MLDockerTrainer.csproj.CoreCompileInputs.cache
-C:\Users\Edwin\Documents\GitHub\MLDockerTrainer\MLDockerTrainer\obj\Debug\net6.0\MLDockerTrainer.sourcelink.json
