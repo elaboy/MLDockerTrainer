@@ -1,21 +1,14 @@
-# Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
-[Ww][Ii][Nn]32/
-[Aa][Rr][Mm]/
-[Aa][Rr][Mm]64/
-bld/
-[Bb]in/
-[Oo]bj/
-[Ll]og/
-[Ll]ogs/
+"
 
-*.vs
-*.cache
-*.vsidx
+\# file types<br>
+*.cache<br>
+*.dtbcache.v2<br>
+*.dll<br>
+*.pdb<br>
+*.suo<br>
+.suo<br>
+*.testlog<br>
+*.user<br>
 
-obj/*
+\# directories<br>
+**/Release
