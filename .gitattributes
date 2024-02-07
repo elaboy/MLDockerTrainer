@@ -18,4 +18,4 @@ bld/
 *.cache
 *.vsidx
 
-obj/
+obj/*
