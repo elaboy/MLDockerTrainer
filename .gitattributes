@@ -1,2 +1,14 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+"
+
+\# file types<br>
+*.cache<br>
+*.dtbcache.v2<br>
+*.dll<br>
+*.pdb<br>
+*.suo<br>
+.suo<br>
+*.testlog<br>
+*.user<br>
+
+\# directories<br>
+**/Release
