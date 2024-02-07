@@ -1,4 +1,4 @@
-settings.txt template:
+settings.txt template (If not transformer, leave it in blank):
 --
 ModelToTrain= 
 
