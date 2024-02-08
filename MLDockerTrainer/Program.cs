@@ -38,7 +38,7 @@ public static class Program
         var batchSize = settings.BatchSize;
         var epochs = settings.Epochs;
         var learningRate = settings.LearningRate;
-        var useLearnignRateScheduler = settings.UseLearnignRateScheduler;
+        var useLearnignRateScheduler = settings.UseLearningRateScheduler;
         var learningRateDecay = settings.LearningRateDecay;
         var learningRateDecayStep = settings.LearningRateDecayStep;
         var useEarlyStopping = settings.UseEarlyStopping;
