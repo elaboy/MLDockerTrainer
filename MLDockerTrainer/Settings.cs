@@ -34,7 +34,7 @@
         public int BatchSize { get; set; }
         public int Epochs { get; set; }
         public double LearningRate { get; set; }
-        public bool UseLearnignRateScheduler { get; set; }
+        public bool UseLearningRateScheduler { get; set; }
         public double? LearningRateDecay { get; set; }
         public int? LearningRateDecayStep { get; set; }
 
@@ -73,10 +73,41 @@
                         throw new Exception("Invalid settings file");
                     }
 
+                    #region Assign values to the properties
                     switch (key)
                     {
                         case "ModelToTrain":
                             ModelToTrain = value;
+                            break;
+                        case "VocabularyFilePath":
+                            VocabularyFilePath = value;
+                            break;
+                        case "SourceVocabularySize":
+                            SourceVocabularySize = int.Parse(value);
+                            break;
+                        case "TargetVocabularySize":
+                            TargetVocabularySize = int.Parse(value);
+                            break;
+                        case "SourceSequenceLength":
+                            SourceSequenceLength = int.Parse(value);
+                            break;
+                        case "TargetSequenceLength":
+                            TargetSequenceLength = int.Parse(value);
+                            break;
+                        case "DModel":
+                            DModel = int.Parse(value);
+                            break;
+                        case "N":
+                            N = int.Parse(value);
+                            break;
+                        case "H":
+                            H = int.Parse(value);
+                            break;
+                        case "Dropout":
+                            Dropout = double.Parse(value);
+                            break;
+                        case "DFF":
+                            DFF = int.Parse(value);
                             break;
                         case "DataPath":
                             DataPath = value.Split(',').ToList();
@@ -90,9 +121,37 @@
                         case "TestSplit":
                             TestSplit = int.Parse(value);
                             break;
+                        case "BatchSize":
+                            BatchSize = int.Parse(value);
+                            break;
+                        case "Epochs":
+                            Epochs = int.Parse(value);
+                            break;
+                        case "LearningRate":
+                            LearningRate = double.Parse(value);
+                            break;
+                        case "UseLearnignRateScheduler":
+                            UseLearningRateScheduler = bool.Parse(value);
+                            break;
+                        case "LearningRateDecay":
+                            LearningRateDecay = double.Parse(value);
+                            break;
+                        case "LearningRateDecayStep":
+                            LearningRateDecayStep = int.Parse(value);
+                            break;
+                        case "UseEarlyStopping":
+                            UseEarlyStopping = bool.Parse(value);
+                            break;
+                        case "EarlyStoppingPatience":
+                            EarlyStoppingPatience = int.Parse(value);
+                            break;
+                        case "SaveModelEachEpoch":
+                            SaveModelEachEpoch = bool.Parse(value);
+                            break;
                         default:
                             throw new Exception("Invalid settings file");
                     }
+                    #endregion
                 }
             }
         }
