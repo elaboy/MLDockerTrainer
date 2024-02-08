@@ -4,7 +4,8 @@ using MLDockerTrainer.Assembler;
 using MLDockerTrainer.Datasets;
 using MLDockerTrainer.Utils;
 using Proteomics.PSM;
-using TorchSharp.Modules;
+using MLDockerTrainer.ModelComponents.Transformer;
+using TorchSharp;
 
 public static class Program
 {
@@ -37,7 +38,7 @@ public static class Program
         var batchSize = settings.BatchSize;
         var epochs = settings.Epochs;
         var learningRate = settings.LearningRate;
-        var useLearnignRateScheduler = settings.UseLearnignRateScheduler;
+        var useLearnignRateScheduler = settings.UseLearningRateScheduler;
         var learningRateDecay = settings.LearningRateDecay;
         var learningRateDecayStep = settings.LearningRateDecayStep;
         var useEarlyStopping = settings.UseEarlyStopping;
@@ -91,21 +92,162 @@ public static class Program
             var testDataset = new RetentionTimeDataset(testData);
 
             //Make dataloaders for all datasets 
-            var trainingDataLoader = new DataLoader(trainingDataset, batchSize, true, drop_last: true);
-            var validationDataLoader = new DataLoader(validationDataset, batchSize, true, drop_last: true);
-            var testDataLoader = new DataLoader(testDataset, batchSize, true, drop_last: true);
+            var trainingDataLoader = new TorchSharp.Modules.DataLoader(trainingDataset, batchSize, true, drop_last: true);
+            var validationDataLoader = new TorchSharp.Modules.DataLoader(validationDataset, batchSize, true, drop_last: true);
+            var testDataLoader = new TorchSharp.Modules.DataLoader(testDataset, batchSize, true, drop_last: true);
 
             //Train the model
-            transformer.Train(trainingData);
+            TrainModel(
+                transformer, trainingDataLoader, validationDataLoader, validationDataLoader, epochs, 
+                learningRate, useLearnignRateScheduler, learningRateDecay, learningRateDecayStep, 
+                useEarlyStopping, earlyStoppingPatience, saveModelEachEpoch);
         }
     }
 
-    private static void TrainModel(Transformer transformer, DataLoader trainingDataLoader,
-        DataLoader validationDataLoader, DataLoader testDataLoader, int epochs, double learningRate,
-        bool useLearnignRateScheduler, double? learningRateDecay, int? learningRateDecayStep, bool useEarlyStopping,
-        int? earlyStoppingPatience, bool saveModelEachEpoch)
+    private static void TrainModel(Transformer transformer, TorchSharp.Modules.DataLoader trainingDataLoader,
+        TorchSharp.Modules.DataLoader validationDataLoader, TorchSharp.Modules.DataLoader testDataLoader, int epochs, double learningRate,
+        bool useLearnignRateScheduler = false, double? learningRateDecay = null, int? learningRateDecayStep = null, bool useEarlyStopping = false,
+        int? earlyStoppingPatience = null, bool saveModelEachEpoch = true)
     {
-        throw new System.NotImplementedException();
+        //Define the device to use for training
+        var device = torch.cuda.is_available() ? torch.device(DeviceType.CUDA) : torch.device(DeviceType.CPU);
+
+        //Move the model to the device
+        transformer.to(device);
+
+        //Create the optimizer
+        var optimizer = torch.optim.Adam(transformer.parameters(), learningRate);
+
+        //Loss Function 
+        var lossFunction = torch.nn.CrossEntropyLoss(ignore_index:0).to(device);
+
+        //Scheduler check
+        torch.optim.lr_scheduler.LRScheduler? scheduler = null;
+
+        if (useLearnignRateScheduler)
+        {
+            scheduler = torch.optim.lr_scheduler.StepLR(optimizer, learningRateDecayStep.Value, learningRateDecay.Value);
+        }
+
+        //Summary Writer
+        var writer = torch.utils.tensorboard.SummaryWriter(@$"runs/{transformer.GetName()}", createRunName: true);
+
+        //Model Stats
+        var trainingLossTracker = new List<List<float>>();
+        var validationLossTracker = new List<List<float>>();
+        var trainingSteps = 0;
+        var validatingSteps = 0;
+        
+        //Learning loop
+        for(int i =0; i < epochs; i++)
+        {
+            transformer.train();
+            List<float> epochLossLog = new();
+
+            foreach (var batch in trainingDataLoader)
+            {
+
+                var encoderInput = batch["EncoderInput"].to(device);
+                var decoderInput = batch["DecoderInput"].to(device);
+                var encoderMask = batch["EncoderInputMask"].to(device);
+                var decoderMask = batch["DecoderInputMask"].to(device);
+                var label = batch["Label"].to(device);
+
+                //Run tensors through the transformer
+                var encoderOutput = transformer.Encode(encoderInput, encoderMask).to(device);
+                var decoderOutput = transformer.Decode(encoderOutput, encoderMask,
+                    decoderInput, decoderMask).to(device);
+                var projectionOutput = transformer.Project(decoderOutput).to(device);
+
+
+                var prediction = torch.FloatTensor(projectionOutput).to(device);
+                var target = torch.LongTensor(label).to(device);
+
+                var loss = lossFunction.forward(prediction, target);
+                
+                optimizer.zero_grad();
+                loss.backward();
+                optimizer.step();
+
+                epochLossLog.Add(loss.item<float>());
+
+                //Write to tensorboard
+                writer.add_scalar("Loss/Training", loss.item<float>(), trainingSteps);
+                trainingSteps++;
+            }
+
+            trainingLossTracker.Add(epochLossLog);
+
+            //Validate the model and quantify the loss
+            transformer.eval();
+            List<float> validationLossLog = new();
+
+            foreach (var batch in validationDataLoader)
+            {
+                var encoderInput = batch["EncoderInput"].to(device);
+                var decoderInput = batch["DecoderInput"].to(device);
+                var encoderMask = batch["EncoderInputMask"].to(device);
+                var decoderMask = batch["DecoderInputMask"].to(device);
+                var label = batch["Label"].to(device);
+
+                //Run tensors through the transformer
+                var encoderOutput = transformer.Encode(encoderInput, encoderMask).to(device);
+                var decoderOutput = transformer.Decode(encoderOutput, encoderMask,
+                                       decoderInput, decoderMask).to(device);
+                var projectionOutput = transformer.Project(decoderOutput).to(device);
+
+                var prediction = torch.FloatTensor(projectionOutput).to(device);
+                var target = torch.LongTensor(label).to(device);
+
+                var loss = lossFunction.forward(prediction, target);
+
+                validationLossLog.Add(loss.item<float>());
+
+                //Write to tensorboard
+                writer.add_scalar("Loss/Validation", loss.item<float>(), validatingSteps);
+                validatingSteps++;
+            }
+
+            validationLossTracker.Add(validationLossLog);
+
+            //save model if required
+            if (saveModelEachEpoch)
+            {
+                transformer.save(@$"checkpoint/epoch_{epochs}_{transformer.GetName()}.dat");
+            }
+        }
+
+        //Test the model using the testing dataset (final validation step)
+        transformer.eval();
+        List<float> testLossLog = new();
+        var testingSteps = 0;
+        foreach (var batch in validationDataLoader)
+        {
+            var encoderInput = batch["EncoderInput"].to(device);
+            var decoderInput = batch["DecoderInput"].to(device);
+            var encoderMask = batch["EncoderInputMask"].to(device);
+            var decoderMask = batch["DecoderInputMask"].to(device);
+            var label = batch["Label"].to(device);
+
+            //Run tensors through the transformer
+            var encoderOutput = transformer.Encode(encoderInput, encoderMask).to(device);
+            var decoderOutput = transformer.Decode(encoderOutput, encoderMask,
+                                                  decoderInput, decoderMask).to(device);
+            var projectionOutput = transformer.Project(decoderOutput).to(device);
+
+            var prediction = torch.FloatTensor(projectionOutput).to(device);
+            var target = torch.LongTensor(label).to(device);
+
+            var loss = lossFunction.forward(prediction, target);
+
+            testLossLog.Add(loss.item<float>());
+
+            //Write to tensorboard
+            writer.add_scalar("Loss/Test", loss.item<float>(), testingSteps);
+            testingSteps++;
+        }
+
+        transformer.save(@$"trainedModelWeights_{transformer.GetName()}.dat");
     }
 
     private static void PrintHelp()
