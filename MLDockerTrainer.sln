@@ -5,6 +5,8 @@ VisualStudioVersion = 17.8.34511.84
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MLDockerTrainer", "MLDockerTrainer\MLDockerTrainer.csproj", "{D27E1EE8-AA21-41D6-992E-5716A87BFE34}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{2E0668E4-43CE-4E09-A3AF-98C6C235D7B1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{D27E1EE8-AA21-41D6-992E-5716A87BFE34}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D27E1EE8-AA21-41D6-992E-5716A87BFE34}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D27E1EE8-AA21-41D6-992E-5716A87BFE34}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E0668E4-43CE-4E09-A3AF-98C6C235D7B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E0668E4-43CE-4E09-A3AF-98C6C235D7B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E0668E4-43CE-4E09-A3AF-98C6C235D7B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E0668E4-43CE-4E09-A3AF-98C6C235D7B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
