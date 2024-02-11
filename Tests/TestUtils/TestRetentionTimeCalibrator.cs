@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MLDockerTrainer.Utils;
+﻿using MLDockerTrainer.Utils;
 
 namespace Tests.TestUtils
 {
@@ -20,7 +15,7 @@ namespace Tests.TestUtils
             });
 
             var csv = calibrator.GetDataAsDataTable();
-            
+
             RetentionTimeCalibrator.ToCSV(csv, @"D:\MannPeptideResults\TestingCalibrator.csv");
         }
     }

@@ -1,3 +1,4 @@
+using System.ComponentModel.Design;
 using CsvHelper;
 using Easy.Common.Extensions;
 using Proteomics.PSM;
@@ -57,6 +58,71 @@ public static class TokenKit
         tokenList.Add(END_OF_SEQUENCE_TOKEN);
 
         return tokenList;
+    }
+
+    public static List<List<string>> TokenizeRetentionTimeWithFullSequence(CalibratedRetentionTimes calibratedRTs)
+    {
+        var dictionary = calibratedRTs.RetentionTimeDictionary;
+
+        var tokens = new List<List<string>>();
+
+        foreach (var sequence in dictionary)
+        {
+            List<string> tokenList = new();
+            tokenList.Add(RETENTION_TIME_START_TOKEN);
+
+            var retentionTime = Math.Round(sequence.Value.Value, 2, MidpointRounding.AwayFromZero);
+
+            tokenList.AddRange(RetentionTimeTokenizer(retentionTime));
+            tokenList.Add(END_OF_RETENTION_TIME_TOKEN);
+            tokenList.Add(START_OF_SEQUENCE_TOKEN);
+            if (!sequence.Key.Contains("Metal"))
+            {
+                var fullSequenceSplit = sequence.Key.Split('[', ']');
+                foreach (var item in fullSequenceSplit)
+                {
+                    if (!item.Contains(" "))
+                    {
+                        foreach (var residue in item)
+                        {
+                            tokenList.Add(residue.ToString());
+                        }
+                    }
+                    else
+                    {
+                        var splitByColon = item.Split(':');
+                        tokenList.Add(splitByColon[1]);
+                    }
+                }
+                tokenList.Add(END_OF_SEQUENCE_TOKEN);
+            }
+            else if (sequence.Key.Contains("Metal:Fe["))
+            {
+                //In case of [Metal: Fe[..] on ..] ignore inner brackets when splitting so I finish with Fe[..] on .. //todo: fix this case, it is not working yet
+
+                var fullSequenceSplit = sequence.Key.Split("[Metal:");
+                foreach (var item in fullSequenceSplit)
+                {
+                    if (!item.Contains(" "))
+                    {
+                        foreach (var residue in item)
+                        {
+                            tokenList.Add(residue.ToString());
+                        }
+                    }
+                    else
+                    {
+                        var splitByColon = item.Split(':');
+                        tokenList.Add(splitByColon[1]);
+                    }
+                }
+                tokenList.Add(END_OF_SEQUENCE_TOKEN);
+            }
+
+            tokens.Add(tokenList);
+        }
+
+        return tokens;
     }
 
     public static string[] NumericalTokenizer(double number)
