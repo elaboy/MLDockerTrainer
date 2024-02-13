@@ -1,6 +1,4 @@
-﻿using MachineLearning.Transformer;
-using MachineLearning.TransformerComponents;
-using TorchSharp;
+﻿using TorchSharp;
 using Decoder = MLDockerTrainer.ModelComponents.Transformer.Decoder;
 using DecoderBlock = MLDockerTrainer.ModelComponents.Transformer.DecoderBlock;
 using Encoder = MLDockerTrainer.ModelComponents.Transformer.Encoder;
