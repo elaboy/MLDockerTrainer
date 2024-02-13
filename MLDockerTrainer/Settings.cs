@@ -23,9 +23,9 @@
         #region Data parameters
 
         public List<string> DataPath { get; set; }
-        public int TrainingSplit { get; set; }
-        public int ValidationSplit { get; set; }
-        public int TestSplit { get; set; }
+        public double TrainingSplit { get; set; }
+        public double ValidationSplit { get; set; }
+        public double TestSplit { get; set; }
         
         #endregion
 
@@ -44,6 +44,11 @@
         public bool SaveModelEachEpoch { get; set; }
         //todo: expand this to include more parameters
         #endregion
+
+        public Settings() : base()
+        {
+            
+        }
 
         public Settings(string path)
         {
@@ -113,13 +118,13 @@
                             DataPath = value.Split(',').ToList();
                             break;
                         case "TrainingSplit":
-                            TrainingSplit = int.Parse(value);
+                            TrainingSplit = double.Parse(value);
                             break;
                         case "ValidationSplit":
-                            ValidationSplit = int.Parse(value);
+                            ValidationSplit = double.Parse(value);
                             break;
                         case "TestSplit":
-                            TestSplit = int.Parse(value);
+                            TestSplit = double.Parse(value);
                             break;
                         case "BatchSize":
                             BatchSize = int.Parse(value);
@@ -148,8 +153,8 @@
                         case "SaveModelEachEpoch":
                             SaveModelEachEpoch = bool.Parse(value);
                             break;
-                        default:
-                            throw new Exception("Invalid settings file");
+                        //default:
+                        //    throw new Exception("Invalid settings file");
                     }
                     #endregion
                 }

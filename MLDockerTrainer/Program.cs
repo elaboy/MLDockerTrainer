@@ -5,18 +5,25 @@ using MLDockerTrainer.Datasets;
 using MLDockerTrainer.Utils;
 using Proteomics.PSM;
 using MLDockerTrainer.ModelComponents.Transformer;
+using ThermoFisher.CommonCore.Data;
 using TorchSharp;
 
 public static class Program
 {
-
     public static void Main(string[] args)
     {
         var parser = new Parser(with => with.HelpWriter = null);
-        var result = parser.ParseArguments<Settings>(args);
+        //var result = parser.ParseArguments<string>(args);
+        Console.WriteLine(args[0]);
 
-        result.WithParsed(settings => Run(settings));
+        var settings = new Settings(args[0]);
 
+        foreach (var prop in settings.GetType().GetProperties())
+        {
+            Console.WriteLine($"{prop.Name}: {prop.GetValue(settings)}");
+        }
+
+        //result.WithParsed(settings => Run(settings));
     }
 
     private static void Run(Settings settings)
