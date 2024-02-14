@@ -65,6 +65,7 @@ public static class TokenKit
         var dictionary = calibratedRTs.RetentionTimeDictionary;
 
         var tokens = new List<List<string>>();
+        //todo: get rid of the regex expressions not being used and save them for later with a description
 
         foreach (var sequence in dictionary)
         {
