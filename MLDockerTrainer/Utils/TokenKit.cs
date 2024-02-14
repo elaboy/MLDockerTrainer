@@ -1,8 +1,8 @@
-using System.ComponentModel.Design;
 using CsvHelper;
 using Easy.Common.Extensions;
 using Proteomics.PSM;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using TorchSharp;
 
 namespace MLDockerTrainer.Utils;
@@ -71,57 +71,50 @@ public static class TokenKit
             List<string> tokenList = new();
             tokenList.Add(RETENTION_TIME_START_TOKEN);
 
+            //regex to match the mods
+            MatchCollection matches = Regex.Matches(sequence.Key, "\\w+:(\\w+(?:\\[[^\\[\\]]+\\])? on \\w)"); 
+
+            //regex to match outer brackets with *, not inner ones
+            MatchCollection matchesForReplacement = Regex.Matches(sequence.Key,
+                "(?<=[A-HJ-Z])\\[|(?<=\\[)[A-HJ-Z](?=\\])|(?<=[A-HJ-Z])\\](?=$|[A-Z]|(?<=\\])[^A-Z])");
+
+            //regex to replace outer brackets with *, not inner ones
+            string replacedBracketsWithStar = Regex.Replace(sequence.Key,
+                "(?<=[A-HJ-Z])\\[|(?<=\\[)[A-HJ-Z](?=\\])|(?<=[A-HJ-Z])\\](?=$|[A-Z]|(?<=\\])[^A-Z])", 
+                "*");
+
+            //regex to replace between * and : inside the mod 
+            string noColonModWithStar = Regex.Replace(replacedBracketsWithStar, "\\*(.*?):",
+                "*");
+
+            //regex to match between * and : inside the mod
+            MatchCollection matchesForNoColonModWithStar = Regex.Matches(noColonModWithStar, "\\*(.*?)\\*");
+
             var retentionTime = Math.Round(sequence.Value.Value, 2, MidpointRounding.AwayFromZero);
 
             tokenList.AddRange(RetentionTimeTokenizer(retentionTime));
             tokenList.Add(END_OF_RETENTION_TIME_TOKEN);
             tokenList.Add(START_OF_SEQUENCE_TOKEN);
-            if (!sequence.Key.Contains("Metal"))
-            {
-                var fullSequenceSplit = sequence.Key.Split('[', ']');
-                foreach (var item in fullSequenceSplit)
-                {
-                    if (!item.Contains(" "))
-                    {
-                        foreach (var residue in item)
-                        {
-                            tokenList.Add(residue.ToString());
-                        }
-                    }
-                    else
-                    {
-                        var splitByColon = item.Split(':');
-                        tokenList.Add(splitByColon[1]);
-                    }
-                }
-                tokenList.Add(END_OF_SEQUENCE_TOKEN);
-            }
-            else if (sequence.Key.Contains("Metal:Fe["))
-            {
-                //In case of [Metal: Fe[..] on ..] ignore inner brackets when splitting so I finish with Fe[..] on .. //todo: fix this case, it is not working yet
 
-                var fullSequenceSplit = sequence.Key.Split("[Metal:");
-                foreach (var item in fullSequenceSplit)
+            //splitting by *
+            foreach (var segment in replacedBracketsWithStar.Split('*'))
+            {
+                if (segment.Contains(" ")) //if it contains a split, it is a mod
                 {
-                    if (!item.Contains(" "))
-                    {
-                        foreach (var residue in item)
-                        {
-                            tokenList.Add(residue.ToString());
-                        }
-                    }
-                    else
-                    {
-                        var splitByColon = item.Split(':');
-                        tokenList.Add(splitByColon[1]);
-                    }
+                    //regex to match between * and : inside the mod
+                    var mod = Regex.Replace(segment, "(.*?):", ""); //remove everything before the colon
+                    tokenList.Add(mod); //add the mod
+                    continue;
                 }
-                tokenList.Add(END_OF_SEQUENCE_TOKEN);
+                
+                foreach (var residue in segment)
+                {
+                    tokenList.Add(residue.ToString()); //add the residue
+                }
             }
-
+            tokenList.Add(END_OF_SEQUENCE_TOKEN);
             tokens.Add(tokenList);
         }
-
         return tokens;
     }
 

@@ -1,11 +1,11 @@
 ﻿using CommandLine;
+using MachineLearning.RetentionTimePredictionModels;
 using MLDockerTrainer;
 using MLDockerTrainer.Assembler;
 using MLDockerTrainer.Datasets;
+using MLDockerTrainer.ModelComponents.Transformer;
 using MLDockerTrainer.Utils;
 using Proteomics.PSM;
-using MLDockerTrainer.ModelComponents.Transformer;
-using ThermoFisher.CommonCore.Data;
 using TorchSharp;
 
 public static class Program
@@ -53,8 +53,8 @@ public static class Program
         var saveModelEachEpoch = settings.SaveModelEachEpoch;
         var vocabularyFilePath = settings.VocabularyFilePath;
 
-        //Use settings to ensamble the model and the training data //todo: work with model naming
-        if (model == "transformer" &&
+        //Use settings to ensamble the model and the training data //todo: work with model naming, maybe an enum?
+        if (model == "AARTN-Transformer" &&
             sourceVocabularySize is not null &&
             targetVocabularySize is not null &&
             sourceSequenceLength is not null &&
@@ -67,31 +67,45 @@ public static class Program
             vocabularyFilePath is not null)
         {
             //Create the transformer model
-            var transformer = RetentionTimeTransformerAssembler.AssembleTransformer(
+            var transformer = AARTN.AssembleTranformer(
                 sourceVocabularySize.Value, targetVocabularySize.Value,
                 sourceSequenceLength.Value, targetSequenceLength.Value, dModel.Value, N.Value,
                 h.Value, dropout.Value, dFF.Value);
 
-            //Collect data from files
-            var psms = new List<PsmFromTsv>();
+            ////Collect data from files
+            //var psms = new List<PsmFromTsv>();
 
-            dataPath.ForEach(path =>
+            //dataPath.ForEach(path =>
+            //{
+            //    var psmList = Readers.SpectrumMatchTsvReader.ReadPsmTsv(path, out var warnings)
+            //        .Where(x => x.AmbiguityLevel == "1");
+            //    psms.AddRange(psmList);
+            //});
+
+            //load calibrated retention times
+            List<CalibratedRetentionTimes> calibratedRetentionTimes = new();
+            foreach (var path in dataPath)
             {
-                var psmList = Readers.SpectrumMatchTsvReader.ReadPsmTsv(path, out var warnings)
-                    .Where(x => x.AmbiguityLevel == "1");
-                psms.AddRange(psmList);
-            });
+                calibratedRetentionTimes.Add(new CalibratedRetentionTimes(path));
+            }
 
             //Get vocabulary
             var vocabulary = TokenKit.GetVocab(vocabularyFilePath);
 
             //Transform data to tokens
-            var dataAsVocabFormat = PsmParser.GetRetentionTimeWithFullSequenceAsTokens(psms);
-            var formattedData = TokenKit.Tokenize(dataAsVocabFormat, vocabulary);
+            List<List<string>> formattedFullSequences = new();
+
+            foreach (var calibratedRetentionTime in calibratedRetentionTimes)
+            {
+                formattedFullSequences.AddRange(TokenKit.TokenizeRetentionTimeWithFullSequence(calibratedRetentionTime));
+            }
+
+            var dataAsVocabFormat = TokenKit.Tokenize(formattedFullSequences, vocabulary);
 
             //Split into trianing, validation, and test
             var (trainingData, validationData, testData) =
-                TokenKit.TrainValidateTestSplit(formattedData, trainingSplit, validationSplit, testSplit);
+                TokenKit.TrainValidateTestSplit(dataAsVocabFormat, trainingSplit, validationSplit,
+                    testSplit);
 
             //Make datasets for each partition 
             var trainingDataset = new RetentionTimeDataset(trainingData);
@@ -104,10 +118,9 @@ public static class Program
             var testDataLoader = new TorchSharp.Modules.DataLoader(testDataset, batchSize, true, drop_last: true);
 
             //Train the model
-            TrainModel(
-                transformer, trainingDataLoader, validationDataLoader, validationDataLoader, epochs, 
-                learningRate, useLearnignRateScheduler, learningRateDecay, learningRateDecayStep, 
-                useEarlyStopping, earlyStoppingPatience, saveModelEachEpoch);
+            AARTN.Train(transformer, trainingDataLoader, validationDataLoader, testDataLoader, epochs, learningRate, 
+                useLearnignRateScheduler, learningRateDecay, learningRateDecayStep, useEarlyStopping, 
+                earlyStoppingPatience, saveModelEachEpoch);
         }
     }
 
@@ -126,7 +139,7 @@ public static class Program
         var optimizer = torch.optim.Adam(transformer.parameters(), learningRate);
 
         //Loss Function 
-        var lossFunction = torch.nn.CrossEntropyLoss(ignore_index:0).to(device);
+        var lossFunction = torch.nn.CrossEntropyLoss(ignore_index: 0).to(device);
 
         //Scheduler check
         torch.optim.lr_scheduler.LRScheduler? scheduler = null;
@@ -144,9 +157,9 @@ public static class Program
         var validationLossTracker = new List<List<float>>();
         var trainingSteps = 0;
         var validatingSteps = 0;
-        
+
         //Learning loop
-        for(int i =0; i < epochs; i++)
+        for (int i = 0; i < epochs; i++)
         {
             transformer.train();
             List<float> epochLossLog = new();
@@ -171,7 +184,7 @@ public static class Program
                 var target = torch.LongTensor(label).to(device);
 
                 var loss = lossFunction.forward(prediction, target);
-                
+
                 optimizer.zero_grad();
                 loss.backward();
                 optimizer.step();

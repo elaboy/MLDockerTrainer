@@ -7,7 +7,7 @@ namespace Tests.TestUtils
         [Test]
         public void TestTokenKitConstructor()
         {
-            var calibrator = new CalibratedRetentionTimes(@"D:\MannPeptideResults\TestingCalibrator.csv");
+            var calibrator = new CalibratedRetentionTimes(@"C:\Users\elabo\Documents\MannPeptideResults\TestingCalibratedRTsSmall.csv");
             var tokenizedCalibrator = TokenKit.TokenizeRetentionTimeWithFullSequence(calibrator);
 
             int zero = 0;
