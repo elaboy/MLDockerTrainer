@@ -91,9 +91,9 @@ public static class TokenKit
             //regex to match between * and : inside the mod
             MatchCollection matchesForNoColonModWithStar = Regex.Matches(noColonModWithStar, "\\*(.*?)\\*");
 
-            var retentionTime = Math.Round(sequence.Value.Value, 2, MidpointRounding.AwayFromZero);
+            //var retentionTime = Math.Round(sequence.Value.Value, 2, MidpointRounding.AwayFromZero);
 
-            tokenList.AddRange(RetentionTimeTokenizer(retentionTime));
+            tokenList.AddRange(NormalizedRetentiopnTimeTokenizer(sequence.Value.Value));
             tokenList.Add(END_OF_RETENTION_TIME_TOKEN);
             tokenList.Add(START_OF_SEQUENCE_TOKEN);
 
@@ -199,16 +199,20 @@ public static class TokenKit
 
     public static string[] NormalizedRetentiopnTimeTokenizer(double retentionTime)
     {
-        var roundedTo20Decimal = Math.Round(retentionTime, 20);
+        decimal roundedTo20Decimal = Math.Round((decimal)retentionTime, 20);
 
-        var tokens = new string[21];
-
-        foreach (var position in roundedTo20Decimal.ToString())
+        //return double as a string array where each digit is a token
+        var asString = roundedTo20Decimal.ToString().ToCharArray().Select(x => x.ToString()).ToArray();
+        if (asString.Length < 20)
         {
-            tokens[int.Parse(position.ToString())] = position.ToString();
+            var padding = new string[20 - asString.Length];
+            for (int i = 0; i < padding.Length; i++)
+            {
+                padding[i] = "0";
+            }
+            asString = asString.Concat(padding).ToArray();
         }
-
-        return tokens;
+        return asString;
     }
 
     public static torch.Tensor PaddingTensor(torch.Tensor tensor, int desiredTensorLength)

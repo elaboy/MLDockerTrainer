@@ -17,9 +17,7 @@ namespace MLDockerTrainer.Datasets
         private int[] _integerIndexes = new[]
         {
             _zeroIndex, _oneIndex, _twoIndex, _threeIndex, _fourIndex, _fiveIndex, _sixIndex, _sevenIndex, _eightIndex,
-            _nineIndex, _negativeOneIndex, _negativeTwoIndex, _negativeThreeIndex, _negativeFourIndex,
-            _negativeFiveIndex,
-            _negativeSixIndex, _negativeSevenIndex, _negativeEightIndex, _negativeNineIndex
+            _nineIndex, _dot
         };
         public override Dictionary<string, torch.Tensor> GetTensor(long index)
         {
@@ -29,13 +27,13 @@ namespace MLDockerTrainer.Datasets
             var encoderInputList = data.Select(x => _integerIndexes.Contains(x) ? _maskingIndex : x);
             var encoderInput = torch.tensor(encoderInputList.ToArray());
             //Encoder Input Mask
-            var encoderInputMask = encoderInput.tile(new long[] { 50, 1 }).tril(1);
+            var encoderInputMask = encoderInput.tile(new long[] { 100, 1 }).tril(1);
             //Decoder Input
             var decoderInputList = data.Select(x => _integerIndexes.Contains(x) ? x : _maskingIndex);
             var decoderInput = torch.from_array(decoderInputList.ToArray());
 
             //Decoder Input Mask
-            var decoderInputMask = decoderInput.tile(new long[] { 50, 1 }).tril(1);
+            var decoderInputMask = decoderInput.tile(new long[] { 100, 1 }).tril(1);
 
 
             //Debug write line tensor to check them
@@ -51,7 +49,7 @@ namespace MLDockerTrainer.Datasets
                 { "EncoderInputMask", encoderInputMask },
                 { "DecoderInput", decoderInput },
                 { "DecoderInputMask", decoderInputMask },
-                {"Label", torch.from_array(data.ToArray())}
+                {"Label", torch.from_array(data.Take(22).ToArray())}
             };
         }
         public RetentionTimeDataset(List<List<int>> dataset) : base()
@@ -76,14 +74,6 @@ namespace MLDockerTrainer.Datasets
         private const int _sevenIndex = 13;
         private const int _eightIndex = 14;
         private const int _nineIndex = 15;
-        private const int _negativeOneIndex = 16;
-        private const int _negativeTwoIndex = 17;
-        private const int _negativeThreeIndex = 18;
-        private const int _negativeFourIndex = 19;
-        private const int _negativeFiveIndex = 20;
-        private const int _negativeSixIndex = 21;
-        private const int _negativeSevenIndex = 22;
-        private const int _negativeEightIndex = 23;
-        private const int _negativeNineIndex = 24;
+        private const int _dot = 16;
     }
 }

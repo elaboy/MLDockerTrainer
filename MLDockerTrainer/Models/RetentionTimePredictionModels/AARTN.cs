@@ -127,11 +127,18 @@ public static class AARTN
                 var prediction = torch.FloatTensor(projectionOutput).to(device);
                 var target = torch.LongTensor(label).to(device);
 
-                Debug.WriteLine(prediction.ToString(TensorStringStyle.Julia));
-                Debug.WriteLine(target.ToString(TensorStringStyle.Julia));
+                //Debug.WriteLine(prediction.ToString(TensorStringStyle.Julia));
+                //Debug.WriteLine(prediction[torch.TensorIndex.Colon, torch.TensorIndex.Colon,
+                //        torch.TensorIndex.Slice(0, 22)]
+                //    .ToString(TensorStringStyle.Julia));
 
-                var loss = lossFunction.forward(prediction, target);
+                //Debug.WriteLine(target.ToString(TensorStringStyle.Julia));
 
+                var loss = lossFunction.forward(
+                    prediction[torch.TensorIndex.Colon, torch.TensorIndex.Colon,
+                        torch.TensorIndex.Slice(0, 22)], target);
+
+                Debug.WriteLine("trainingLoss: " + loss.ToString(TensorStringStyle.Julia));
                 optimizer.zero_grad();
                 loss.backward();
                 optimizer.step();
@@ -167,6 +174,7 @@ public static class AARTN
                 var target = torch.LongTensor(label).to(device);
 
                 var loss = lossFunction.forward(prediction, target);
+                Debug.WriteLine("validationLoss: " + loss.ToString(TensorStringStyle.Julia));
 
                 validationLossLog.Add(loss.item<float>());
 

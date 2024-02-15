@@ -17,7 +17,7 @@ public class InputEmbeddings : torch.nn.Module<torch.Tensor, torch.Tensor>
 
     public override torch.Tensor forward(torch.Tensor input)
     {
-        Debug.WriteLine(input.ToString(TensorStringStyle.Julia));
+        //Debug.WriteLine(input.ToString(TensorStringStyle.Julia));
         return _embedding.forward(input) * Math.Sqrt(_dModel);
     }
 
