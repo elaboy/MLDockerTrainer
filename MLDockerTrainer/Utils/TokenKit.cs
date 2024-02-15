@@ -197,6 +197,20 @@ public static class TokenKit
         return tokens;
     }
 
+    public static string[] NormalizedRetentiopnTimeTokenizer(double retentionTime)
+    {
+        var roundedTo20Decimal = Math.Round(retentionTime, 20);
+
+        var tokens = new string[21];
+
+        foreach (var position in roundedTo20Decimal.ToString())
+        {
+            tokens[int.Parse(position.ToString())] = position.ToString();
+        }
+
+        return tokens;
+    }
+
     public static torch.Tensor PaddingTensor(torch.Tensor tensor, int desiredTensorLength)
     {
         if (tensor.shape[0] != desiredTensorLength)

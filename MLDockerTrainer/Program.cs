@@ -23,7 +23,8 @@ public static class Program
             Console.WriteLine($"{prop.Name}: {prop.GetValue(settings)}");
         }
 
-        //result.WithParsed(settings => Run(settings));
+        Console.WriteLine("Running...");
+        Run(settings);
     }
 
     private static void Run(Settings settings)
@@ -83,22 +84,14 @@ public static class Program
             //});
 
             //load calibrated retention times
-            List<CalibratedRetentionTimes> calibratedRetentionTimes = new();
-            foreach (var path in dataPath)
-            {
-                calibratedRetentionTimes.Add(new CalibratedRetentionTimes(path));
-            }
+            CalibratedRetentionTimes calibratedRetentionTimes = new CalibratedRetentionTimes(settings.DataPath.First());
 
             //Get vocabulary
             var vocabulary = TokenKit.GetVocab(vocabularyFilePath);
 
             //Transform data to tokens
-            List<List<string>> formattedFullSequences = new();
-
-            foreach (var calibratedRetentionTime in calibratedRetentionTimes)
-            {
-                formattedFullSequences.AddRange(TokenKit.TokenizeRetentionTimeWithFullSequence(calibratedRetentionTime));
-            }
+            List<List<string>> formattedFullSequences =
+                TokenKit.TokenizeRetentionTimeWithFullSequence(calibratedRetentionTimes);
 
             var dataAsVocabFormat = TokenKit.Tokenize(formattedFullSequences, vocabulary);
 

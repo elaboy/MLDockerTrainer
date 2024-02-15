@@ -1,4 +1,6 @@
-﻿using TorchSharp;
+﻿using System.Diagnostics;
+using Tensorboard;
+using TorchSharp;
 using TorchSharp.Modules;
 using Decoder = MLDockerTrainer.ModelComponents.Transformer.Decoder;
 using DecoderBlock = MLDockerTrainer.ModelComponents.Transformer.DecoderBlock;
@@ -124,6 +126,9 @@ public static class AARTN
 
                 var prediction = torch.FloatTensor(projectionOutput).to(device);
                 var target = torch.LongTensor(label).to(device);
+
+                Debug.WriteLine(prediction.ToString(TensorStringStyle.Julia));
+                Debug.WriteLine(target.ToString(TensorStringStyle.Julia));
 
                 var loss = lossFunction.forward(prediction, target);
 

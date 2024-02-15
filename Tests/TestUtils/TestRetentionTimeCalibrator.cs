@@ -7,19 +7,21 @@ namespace Tests.TestUtils
         [Test]
         public void TestToCSV()
         {
-            var calibrator = new RetentionTimeCalibrator(new List<string>()
+            //Get inside the MannPeptidesResults folder and get all ides.psmtsv files paths into the paths list
+            List<string> paths = new();
+            foreach (var file in Directory.GetFiles(@"C:\Users\elabo\Documents\MannPeptideResults"))
             {
-                @"C:\Users\elabo\Documents\MannPeptideResults\HEK293_AllPeptides.psmtsv",
-                @"C:\Users\elabo\Documents\MannPeptideResults\Hela_AllPeptides.psmtsv",
-                @"C:\Users\elabo\Documents\MannPeptideResults\HepG2AllPeptides.psmtsv",
-                @"C:\Users\elabo\Documents\MannPeptideResults\Jurkat_AllPeptides.psmtsv",
-                @"C:\Users\elabo\Documents\MannPeptideResults\A549_AllPeptides.psmtsv",
-                @"C:\Users\elabo\Documents\MannPeptideResults\GAMG_AllPeptides.psmtsv"
-            });
+                if (file.Contains("tides.psmtsv") && !file.Contains(".txt"))
+                {
+                    paths.Add(file);
+                }
+            }
+
+            var calibrator = new RetentionTimeCalibrator(paths);
 
             var csv = calibrator.GetDataAsDataTable();
 
-            RetentionTimeCalibrator.ToCSV(csv, @"C:\Users\elabo\Documents\MannPeptideResults\TestingCalibrator.csv");
+            RetentionTimeCalibrator.ToCSV(csv, @"C:\Users\elabo\Documents\MannPeptideResults\CalibratorTestingMultipleFiles.csv");
         }
 
         [Test]

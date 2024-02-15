@@ -21,4 +21,13 @@
     <ProjectReference Include="..\MLDockerTrainer\MLDockerTrainer.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="CalibratorTestingMultipleFiles.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="VocabularyForTransformerUnimod_V3.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

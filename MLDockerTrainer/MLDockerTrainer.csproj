@@ -11,8 +11,8 @@
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="CsvHelper" Version="30.1.0" />
     <PackageReference Include="mzLib" Version="1.0.546" />
-    <PackageReference Include="TorchSharp" Version="0.101.5" />
-    <PackageReference Include="TorchSharp-cuda-linux" Version="0.101.5" />
+    <PackageReference Include="TorchSharp" Version="0.101.6" />
+    <PackageReference Include="TorchSharp-cpu" Version="0.101.6" />
   </ItemGroup>
 
 </Project>
