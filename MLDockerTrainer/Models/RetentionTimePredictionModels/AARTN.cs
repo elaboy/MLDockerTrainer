@@ -80,7 +80,7 @@ public static class AARTN
         transformer.to(device);
 
         //Create the optimizer
-        var optimizer = torch.optim.Adam(transformer.parameters(), learningRate);
+        var optimizer = torch.optim.AdamW(transformer.parameters(), learningRate);
 
         //Loss Function 
         var lossFunction = torch.nn.CrossEntropyLoss().to(device);

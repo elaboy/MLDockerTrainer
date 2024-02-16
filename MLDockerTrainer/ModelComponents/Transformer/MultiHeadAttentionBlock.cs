@@ -17,7 +17,9 @@ public class MultiHeadAttentionBlock : torch.nn.Module<torch.Tensor, torch.Tenso
         _dK = dModel / numHeads;
 
         _linearQ = torch.nn.Linear(dModel, dModel, false); //Wq
+        torch.nn.init.xavier_uniform_(_linearQ.weight);
         _linearK = torch.nn.Linear(dModel, dModel, false); //Wk
+        torch.nn.init.xavier_uniform_(_linearK.weight);
         _linearV = torch.nn.Linear(dModel, dModel, false); //Wv
         _linearO = torch.nn.Linear(dModel, dModel, false); //Wo
 
