@@ -83,7 +83,7 @@ public static class AARTN
         var optimizer = torch.optim.Adam(transformer.parameters(), learningRate);
 
         //Loss Function 
-        var lossFunction = torch.nn.CrossEntropyLoss(ignore_index: 0).to(device);
+        var lossFunction = torch.nn.CrossEntropyLoss().to(device);
 
         //Scheduler check
         torch.optim.lr_scheduler.LRScheduler? scheduler = null;
@@ -127,16 +127,14 @@ public static class AARTN
                 var prediction = torch.FloatTensor(projectionOutput).to(device);
                 var target = torch.LongTensor(label).to(device);
 
-                //Debug.WriteLine(prediction.ToString(TensorStringStyle.Julia));
+                Debug.WriteLine(prediction.ToString(TensorStringStyle.Julia));
                 //Debug.WriteLine(prediction[torch.TensorIndex.Colon, torch.TensorIndex.Colon,
                 //        torch.TensorIndex.Slice(0, 22)]
                 //    .ToString(TensorStringStyle.Julia));
 
-                //Debug.WriteLine(target.ToString(TensorStringStyle.Julia));
+                Debug.WriteLine(target.ToString(TensorStringStyle.Julia));
 
-                var loss = lossFunction.forward(
-                    prediction[torch.TensorIndex.Colon, torch.TensorIndex.Colon,
-                        torch.TensorIndex.Slice(0, 22)], target);
+                var loss = lossFunction.forward(prediction, target);
 
                 Debug.WriteLine("trainingLoss: " + loss.ToString(TensorStringStyle.Julia));
                 optimizer.zero_grad();

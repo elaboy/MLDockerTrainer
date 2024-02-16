@@ -1,9 +1,9 @@
 ModelToTrain=AARTN-Transformer
 VocabularyFilePath=VocabularyForTransformerUnimod_V4.csv
 SourceVocabularySize=2721
-TargetVocabularySize=100
+TargetVocabularySize=20
 SourceSequenceLength=100
-TargetSequenceLength=100
+TargetSequenceLength=20
 DModel=512
 N=6
 H=8

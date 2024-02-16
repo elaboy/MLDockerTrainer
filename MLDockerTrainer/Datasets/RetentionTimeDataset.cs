@@ -1,4 +1,5 @@
-﻿using TorchSharp;
+﻿using System.Diagnostics;
+using TorchSharp;
 
 namespace MLDockerTrainer.Datasets
 {
@@ -29,7 +30,10 @@ namespace MLDockerTrainer.Datasets
             //Encoder Input Mask
             var encoderInputMask = encoderInput.tile(new long[] { 100, 1 }).tril(1);
             //Decoder Input
-            var decoderInputList = data.Select(x => _integerIndexes.Contains(x) ? x : _maskingIndex);
+            var decoderInputList = data.Take(new Range(0, 22)).ToList();
+            decoderInputList.RemoveAt(0);
+            decoderInputList.RemoveAt(decoderInputList.Count-1);
+
             var decoderInput = torch.from_array(decoderInputList.ToArray());
 
             //Decoder Input Mask
@@ -37,11 +41,11 @@ namespace MLDockerTrainer.Datasets
 
 
             //Debug write line tensor to check them
-            //Debug.WriteLine(encoderInput.ToString(TensorStringStyle.Julia));
-            //Debug.WriteLine(encoderInputMask.ToString(TensorStringStyle.Julia));
-            //Debug.WriteLine(decoderInput.ToString(TensorStringStyle.Julia));
-            //Debug.WriteLine(decoderInputMask.ToString(TensorStringStyle.Julia));
-            //Debug.WriteLine(torch.from_array(data.ToArray()).ToString(TensorStringStyle.Julia));
+            Debug.WriteLine(encoderInput.ToString(TensorStringStyle.Julia));
+            Debug.WriteLine(encoderInputMask.ToString(TensorStringStyle.Julia));
+            Debug.WriteLine(decoderInput.ToString(TensorStringStyle.Julia));
+            Debug.WriteLine(decoderInputMask.ToString(TensorStringStyle.Julia));
+            Debug.WriteLine(torch.from_array(data.ToArray()).ToString(TensorStringStyle.Julia));
 
             return new Dictionary<string, torch.Tensor>()
             {
@@ -49,7 +53,7 @@ namespace MLDockerTrainer.Datasets
                 { "EncoderInputMask", encoderInputMask },
                 { "DecoderInput", decoderInput },
                 { "DecoderInputMask", decoderInputMask },
-                {"Label", torch.from_array(data.Take(22).ToArray())}
+                {"Label", decoderInput}
             };
         }
         public RetentionTimeDataset(List<List<int>> dataset) : base()
