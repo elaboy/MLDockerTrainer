@@ -23,7 +23,7 @@
 
   <ItemGroup>
     <None Update="CalibratorTestingMultipleFiles.csv">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="VocabularyForTransformerUnimod_V4.csv">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
