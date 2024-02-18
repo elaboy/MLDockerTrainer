@@ -9,9 +9,9 @@ public class CalibratedRetentionTimes
     [Name("FullSequence")]
     public List<string> FullSequence { get; private set; }
     [Name("Mean")]
-    public List<double?> Mean { get; private set; }
+    public List<float?> Mean { get; private set; }
     [Name("Variance")]
-    public List<double?> Variance { get; private set; }
+    public List<float?> Variance { get; private set; }
 
     public Dictionary<string, double?> RetentionTimeDictionary { get; set; }
     public CalibratedRetentionTimes(string path)
@@ -26,8 +26,8 @@ public class CalibratedRetentionTimes
         {
             var records = csv.GetRecords<dynamic>().ToList();
             var fullSequence = records.Select(x => x.FullSequence as string).ToList();
-            var mean = records.Select(x => double.Parse(x.Mean) as double?).ToList();
-            var variance = records.Select(x => double.Parse(x.Variance) as double?).ToList();
+            var mean = records.Select(x => float.Parse(x.Mean) as float?).ToList();
+            var variance = records.Select(x => float.Parse(x.Variance) as float?).ToList();
 
             FullSequence = fullSequence;
             Mean = mean;

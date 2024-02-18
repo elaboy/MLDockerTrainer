@@ -79,22 +79,34 @@ public static class AARTN
         //Move the model to the device
         transformer.to(device);
 
+
+        var sequential = torch.nn.Sequential(
+            torch.nn.Linear(100, 512),
+            torch.nn.ReLU(),
+            torch.nn.Linear(512, 100),
+            torch.nn.ReLU(),
+            torch.nn.Linear(100, 1)).to(device);
+
         //Create the optimizer
-        var optimizer = torch.optim.AdamW(transformer.parameters(), learningRate);
+        //var optimizer = torch.optim.AdamW(transformer.parameters(), learningRate);
+        var optimizer = torch.optim.AdamW(sequential.parameters(), learningRate);
 
         //Loss Function 
-        var lossFunction = torch.nn.CrossEntropyLoss().to(device);
+        var lossFunction = torch.nn.MSELoss().to(device);
 
         //Scheduler check
-        torch.optim.lr_scheduler.LRScheduler? scheduler = null;
+        //torch.optim.lr_scheduler.LRScheduler? scheduler = null;
 
-        if (useLearningRateScheduler)
-        {
-            scheduler = torch.optim.lr_scheduler.StepLR(optimizer, learningRateDecayStep.Value, learningRateDecay.Value);
-        }
+        //if (useLearningRateScheduler)
+        //{
+        //    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, learningRateDecayStep.Value, learningRateDecay.Value);
+        //}
 
         //Summary Writer
         var writer = torch.utils.tensorboard.SummaryWriter(@$"runs/{transformer.GetName()}", createRunName: true);
+
+        //Plateau check
+        var scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor: 0.9, patience: 5000, verbose: true);
 
         //Model Stats
         var trainingLossTracker = new List<List<float>>();
@@ -105,7 +117,7 @@ public static class AARTN
         //Learning loop
         for (int i = 0; i < epochs; i++)
         {
-            transformer.train();
+            sequential.train();
             List<float> epochLossLog = new();
 
             foreach (var batch in trainingDataLoader)
@@ -115,24 +127,26 @@ public static class AARTN
                 var decoderInput = batch["DecoderInput"].to(device);
                 var encoderMask = batch["EncoderInputMask"].to(device);
                 var decoderMask = batch["DecoderInputMask"].to(device);
-                var label = batch["Label"].to(device);
+                var target = batch["Label"].to(device);
 
-                //Run tensors through the transformer
-                var encoderOutput = transformer.Encode(encoderInput, encoderMask).to(device);
-                var decoderOutput = transformer.Decode(encoderOutput, encoderMask,
-                    decoderInput, decoderMask).to(device);
-                var projectionOutput = transformer.Project(decoderOutput).to(device);
+                ////Run tensors through the transformer
+                //var encoderOutput = transformer.Encode(encoderInput, encoderMask).to(device);
+                //Debug.WriteLine(encoderOutput.ToString(TensorStringStyle.Julia));
+                //var decoderOutput = transformer.Decode(encoderOutput, encoderMask,
+                //    decoderInput, decoderMask).to(device);
+                //Debug.WriteLine(decoderOutput.ToString(TensorStringStyle.Julia));
+                //var prediction = transformer.Project(decoderOutput).to(device);
 
 
-                var prediction = torch.FloatTensor(projectionOutput).to(device);
-                var target = torch.LongTensor(label).to(device);
+                //Debug.WriteLine(prediction.ToString(TensorStringStyle.Julia));
+                ////Debug.WriteLine(prediction[torch.TensorIndex.Colon, torch.TensorIndex.Colon,
+                ////        torch.TensorIndex.Slice(0, 22)]
+                ////    .ToString(TensorStringStyle.Julia));
 
-                Debug.WriteLine(prediction.ToString(TensorStringStyle.Julia));
-                //Debug.WriteLine(prediction[torch.TensorIndex.Colon, torch.TensorIndex.Colon,
-                //        torch.TensorIndex.Slice(0, 22)]
-                //    .ToString(TensorStringStyle.Julia));
+                //Debug.WriteLine(target.ToString(TensorStringStyle.Julia));
 
-                Debug.WriteLine(target.ToString(TensorStringStyle.Julia));
+
+                var prediction = sequential.forward(encoderInput).to(device);
 
                 var loss = lossFunction.forward(prediction, target);
 
@@ -149,9 +163,8 @@ public static class AARTN
             }
 
             trainingLossTracker.Add(epochLossLog);
-
             //Validate the model and quantify the loss
-            transformer.eval();
+            sequential.eval();
             List<float> validationLossLog = new();
 
             foreach (var batch in validationDataLoader)
@@ -160,16 +173,19 @@ public static class AARTN
                 var decoderInput = batch["DecoderInput"].to(device);
                 var encoderMask = batch["EncoderInputMask"].to(device);
                 var decoderMask = batch["DecoderInputMask"].to(device);
-                var label = batch["Label"].to(device);
+                var target = batch["Label"].to(device);
 
-                //Run tensors through the transformer
-                var encoderOutput = transformer.Encode(encoderInput, encoderMask).to(device);
-                var decoderOutput = transformer.Decode(encoderOutput, encoderMask,
-                                       decoderInput, decoderMask).to(device);
-                var projectionOutput = transformer.Project(decoderOutput).to(device);
+                ////Run tensors through the transformer
+                //var encoderOutput = transformer.Encode(encoderInput, encoderMask).to(device);
+                //var decoderOutput = transformer.Decode(encoderOutput, encoderMask,
+                //                       decoderInput, decoderMask).to(device);
+                //var projectionOutput = transformer.Project(decoderOutput).to(device);
 
-                var prediction = torch.FloatTensor(projectionOutput).to(device);
-                var target = torch.LongTensor(label).to(device);
+                //var prediction = torch.FloatTensor(projectionOutput).to(device);
+                //var target = torch.LongTensor(label).to(device);
+
+                var prediction = sequential.forward(encoderInput).to(device);
+
 
                 var loss = lossFunction.forward(prediction, target);
                 Debug.WriteLine("validationLoss: " + loss.ToString(TensorStringStyle.Julia));
@@ -181,17 +197,18 @@ public static class AARTN
                 validatingSteps++;
             }
 
+            scheduler.step(validationLossLog.Average());
             validationLossTracker.Add(validationLossLog);
 
             //save model if required
             if (saveModelAfterEachEpoch)
             {
-                transformer.save(@$"checkpoint/epoch_{epochs}_{transformer.GetName()}.dat");
+                sequential.save(@$"checkpoint/epoch_{epochs}.dat");
             }
         }
 
         //Test the model using the testing dataset (final validation step)
-        transformer.eval();
+        sequential.eval();
         List<float> testLossLog = new();
         var testingSteps = 0;
 
@@ -201,16 +218,18 @@ public static class AARTN
             var decoderInput = batch["DecoderInput"].to(device);
             var encoderMask = batch["EncoderInputMask"].to(device);
             var decoderMask = batch["DecoderInputMask"].to(device);
-            var label = batch["Label"].to(device);
+            var target = batch["Label"].to(device);
 
-            //Run tensors through the transformer
-            var encoderOutput = transformer.Encode(encoderInput, encoderMask).to(device);
-            var decoderOutput = transformer.Decode(encoderOutput, encoderMask,
-                                                  decoderInput, decoderMask).to(device);
-            var projectionOutput = transformer.Project(decoderOutput).to(device);
+            ////Run tensors through the transformer
+            //var encoderOutput = transformer.Encode(encoderInput, encoderMask).to(device);
+            //var decoderOutput = transformer.Decode(encoderOutput, encoderMask,
+            //                                      decoderInput, decoderMask).to(device);
+            //var projectionOutput = transformer.Project(decoderOutput).to(device);
 
-            var prediction = torch.FloatTensor(projectionOutput).to(device);
-            var target = torch.LongTensor(label).to(device);
+            //var prediction = torch.FloatTensor(projectionOutput).to(device);
+            //var target = torch.LongTensor(label).to(device);
+
+            var prediction = sequential.forward(encoderInput).to(device);
 
             var loss = lossFunction.forward(prediction, target);
 
@@ -221,7 +240,7 @@ public static class AARTN
             testingSteps++;
         }
 
-        transformer.save(@$"trainedModelWeights_{transformer.GetName()}.dat");
+        sequential.save(@$"trainedModelWeights.dat");
     }
 
 }

@@ -90,8 +90,8 @@ public static class Program
             var vocabulary = TokenKit.GetVocab(vocabularyFilePath);
 
             //Transform data to tokens
-            List<List<string>> formattedFullSequences =
-                TokenKit.TokenizeRetentionTimeWithFullSequence(calibratedRetentionTimes);
+            var formattedFullSequences =
+                TokenKit.TokenizeFullSequence(calibratedRetentionTimes);
 
             var dataAsVocabFormat = TokenKit.Tokenize(formattedFullSequences, vocabulary);
 

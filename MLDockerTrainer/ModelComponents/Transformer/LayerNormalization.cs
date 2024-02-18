@@ -1,4 +1,5 @@
-﻿using TorchSharp;
+﻿using System.Diagnostics;
+using TorchSharp;
 using TorchSharp.Modules;
 
 namespace MLDockerTrainer.ModelComponents.Transformer;
@@ -15,13 +16,15 @@ public class LayerNormalization : torch.nn.Module<torch.Tensor, torch.Tensor>
 
     public override torch.Tensor forward(torch.Tensor input)
     {
-        var mean = input.mean(new long[]{0}, true);
-        
-        var std = input.std(0, true);
-        
+        var mean = input.mean(new long[]{-1}, true);
+        Debug.WriteLine(mean.ToString(TensorStringStyle.Julia));
+        var std = input.std(1, true, keepdim: true);
+        Debug.WriteLine(std.ToString(TensorStringStyle.Julia));
         var norm = (input - mean) / (std + _eps);
-        
-        return _alpha * norm + _beta;
+        Debug.WriteLine(norm.ToString(TensorStringStyle.Julia));
+        var result = _alpha * norm + _beta;
+        Debug.WriteLine(result.ToString(TensorStringStyle.Julia));
+        return result;
     }
 
     private double _eps;

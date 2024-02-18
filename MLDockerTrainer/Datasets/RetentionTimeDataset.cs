@@ -25,27 +25,25 @@ namespace MLDockerTrainer.Datasets
             var data = _integerDataset[(int)index];
 
             //Encoder Input
-            var encoderInputList = data.Select(x => _integerIndexes.Contains(x) ? _maskingIndex : x);
-            var encoderInput = torch.tensor(encoderInputList.ToArray());
+            var encoderInputList = data.Item1.Select(x => _integerIndexes.Contains(x) ? _maskingIndex : x);
+            var encoderInput = torch.tensor(encoderInputList.ToArray(), torch.ScalarType.Float32);
             //Encoder Input Mask
-            var encoderInputMask = encoderInput.tile(new long[] { 100, 1 }).tril(1);
+            var encoderInputMask = encoderInput.tile(new long[] { 100, 1 }).tril(1).type(torch.ScalarType.Float32);
             //Decoder Input
-            var decoderInputList = data.Take(new Range(0, 22)).ToList();
-            decoderInputList.RemoveAt(0);
-            decoderInputList.RemoveAt(decoderInputList.Count-1);
+            var decoderInputList = data.Item1;
 
-            var decoderInput = torch.from_array(decoderInputList.ToArray());
+            var decoderInput = torch.from_array(decoderInputList.ToArray(), torch.ScalarType.Float32);
 
             //Decoder Input Mask
-            var decoderInputMask = decoderInput.tile(new long[] { 100, 1 }).tril(1);
+            var decoderInputMask = decoderInput.tile(new long[] { 100, 1 }).tril(1).type(torch.ScalarType.Float32);
 
-
+            var label = torch.from_array(new float[]{(float)data.Item2});
             //Debug write line tensor to check them
             Debug.WriteLine(encoderInput.ToString(TensorStringStyle.Julia));
             Debug.WriteLine(encoderInputMask.ToString(TensorStringStyle.Julia));
             Debug.WriteLine(decoderInput.ToString(TensorStringStyle.Julia));
             Debug.WriteLine(decoderInputMask.ToString(TensorStringStyle.Julia));
-            Debug.WriteLine(torch.from_array(data.ToArray()).ToString(TensorStringStyle.Julia));
+            Debug.WriteLine(label.ToString(TensorStringStyle.Julia));
 
             return new Dictionary<string, torch.Tensor>()
             {
@@ -53,15 +51,15 @@ namespace MLDockerTrainer.Datasets
                 { "EncoderInputMask", encoderInputMask },
                 { "DecoderInput", decoderInput },
                 { "DecoderInputMask", decoderInputMask },
-                {"Label", decoderInput}
+                {"Label", label}
             };
         }
-        public RetentionTimeDataset(List<List<int>> dataset) : base()
+        public RetentionTimeDataset(List<(List<int>, float)> dataset) : base()
         {
             _integerDataset = dataset;
         }
 
-        private List<List<int>>? _integerDataset;
+        private List<(List<int>, float)>? _integerDataset;
         private const int _padidngIndex = 0;
         private const int _retentionTimeStartIndex = 1;
         private const int _retentionTimeEndIndex = 2;

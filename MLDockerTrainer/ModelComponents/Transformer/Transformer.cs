@@ -1,4 +1,6 @@
-﻿using TorchSharp;
+﻿using System.Diagnostics;
+using TorchSharp;
+using TorchSharp.Modules;
 
 namespace MLDockerTrainer.ModelComponents.Transformer
 {
@@ -10,8 +12,8 @@ namespace MLDockerTrainer.ModelComponents.Transformer
         {
             _encoder = encoder;
             _decoder = decoder;
-            _sourceEmbedding = sourceEmbedding;
-            _targetEmbedding = targetEmbedding;
+            //_sourceEmbedding = sourceEmbedding;
+            //_targetEmbedding = targetEmbedding;
             _sourcePosition = sourcePosition;
             _targetPosition = targetPosition;
             _projectionLayer = projectionLayer;
@@ -22,16 +24,24 @@ namespace MLDockerTrainer.ModelComponents.Transformer
 
         public torch.Tensor Encode(torch.Tensor source, torch.Tensor sourceMask)
         {
-            source = _sourceEmbedding.forward(source);
+            //source = _sourceEmbedding.forward(source);
+            source = _linearEncode.forward(source).unsqueeze(-1);
+            Debug.WriteLine(source.ToString(TensorStringStyle.Julia));
             source = _sourcePosition.forward(source);
-            return _encoder.forward(source, sourceMask);
+            Debug.WriteLine(source.ToString(TensorStringStyle.Julia));
+            source = _encoder.forward(source, sourceMask);
+            Debug.WriteLine(source.ToString(TensorStringStyle.Julia));
+            return source;
         }
 
         public torch.Tensor Decode(torch.Tensor encoderOutput, torch.Tensor sourceMask, torch.Tensor target,
             torch.Tensor targetMask)
         {
-            target = _targetEmbedding.forward(target);
+            //target = _targetEmbedding.forward(target);
+            target = _linearDecode.forward(target);
+            Debug.WriteLine(target.ToString(TensorStringStyle.Julia));
             target = _targetPosition.forward(target);
+            Debug.WriteLine(target.ToString(TensorStringStyle.Julia));
             return _decoder.forward(target, encoderOutput, sourceMask, targetMask);
         }
 
@@ -52,6 +62,8 @@ namespace MLDockerTrainer.ModelComponents.Transformer
         private PositionalEncoder _sourcePosition;
         private PositionalEncoder _targetPosition;
         private ProjectionLayer _projectionLayer;
+        private Linear _linearEncode = torch.nn.Linear(100, 512);
+        private Linear _linearDecode = torch.nn.Linear(100,512);
         public int SourceVocabSize { get; set; }
 
     }

@@ -60,6 +60,59 @@ public static class TokenKit
         return tokenList;
     }
 
+    public static List<(List<string>, float)> TokenizeFullSequence(CalibratedRetentionTimes calibratedRts)
+    {
+        var dictionary = calibratedRts.RetentionTimeDictionary;
+
+        var tokens = new List<(List<string>, float)>();
+        //todo: get rid of the regex expressions not being used and save them for later with a description
+
+        foreach (var sequence in dictionary)
+        {
+            List<string> tokenList = new();
+
+            //regex to match the mods
+            MatchCollection matches = Regex.Matches(sequence.Key, "\\w+:(\\w+(?:\\[[^\\[\\]]+\\])? on \\w)");
+
+            //regex to match outer brackets with *, not inner ones
+            MatchCollection matchesForReplacement = Regex.Matches(sequence.Key,
+                "(?<=[A-HJ-Z])\\[|(?<=\\[)[A-HJ-Z](?=\\])|(?<=[A-HJ-Z])\\](?=$|[A-Z]|(?<=\\])[^A-Z])");
+
+            //regex to replace outer brackets with *, not inner ones
+            string replacedBracketsWithStar = Regex.Replace(sequence.Key,
+                "(?<=[A-HJ-Z])\\[|(?<=\\[)[A-HJ-Z](?=\\])|(?<=[A-HJ-Z])\\](?=$|[A-Z]|(?<=\\])[^A-Z])",
+                "*");
+
+            //regex to replace between * and : inside the mod 
+            string noColonModWithStar = Regex.Replace(replacedBracketsWithStar, "\\*(.*?):",
+                "*");
+
+            //regex to match between * and : inside the mod
+            MatchCollection matchesForNoColonModWithStar = Regex.Matches(noColonModWithStar, "\\*(.*?)\\*");
+
+            //var retentionTime = Math.Round(sequence.Value.Value, 2, MidpointRounding.AwayFromZero);
+
+
+            //splitting by *
+            foreach (var segment in replacedBracketsWithStar.Split('*'))
+            {
+                if (segment.Contains(" ")) //if it contains a split, it is a mod
+                {
+                    //regex to match between * and : inside the mod
+                    var mod = Regex.Replace(segment, "(.*?):", ""); //remove everything before the colon
+                    tokenList.Add(mod); //add the mod
+                    continue;
+                }
+
+                foreach (var residue in segment)
+                {
+                    tokenList.Add(residue.ToString()); //add the residue
+                }
+            }
+            tokens.Add((tokenList, (float)sequence.Value.Value));
+        }
+        return tokens;
+    }
     public static List<List<string>> TokenizeRetentionTimeWithFullSequence(CalibratedRetentionTimes calibratedRTs)
     {
         var dictionary = calibratedRTs.RetentionTimeDictionary;
@@ -252,8 +305,8 @@ public static class TokenKit
         return integerList;
     }
 
-    public static (List<List<int>>, List<List<int>>, List<List<int>>) TrainValidateTestSplit(
-        List<List<int>> listOfTokenId, double trainingFraction = 0.8,
+    public static (List<(List<int>, float)>, List<(List<int>, float)>, List<(List<int>, float)>) TrainValidateTestSplit(
+        List<(List<int>, float)> listOfTokenId, double trainingFraction = 0.8,
         double testingFraction = 0.1, double validationFraction = 0.1)
     {
         var randomizedData = listOfTokenId.Randomize().ToList();
@@ -325,6 +378,55 @@ public static class TokenKit
                 tokenIdList =
                     PaddingIntegerList(tokenIdList, 0,
                         100); //makes sure padding is done right with desired length
+            else
+                continue;
+
+            tokenizedPsms.Add(tokenIdList);
+        }
+
+        return tokenizedPsms;
+    }
+
+    public static List<(List<int>, float)> Tokenize(List<(List<string>, float)> fullSequenceWithRt, List<Token> vocab)
+    {
+        List<(List<int>, float)> tokenizedPsms = new();
+
+        foreach (var tokenList in fullSequenceWithRt)
+        {
+            (List<int>, float) tokenIdList = new();
+            tokenIdList.Item1 = new List<int>();
+            foreach (var token in tokenList.Item1)
+            {
+                if (vocab.Find(x => x.TokenWord == token) is null &&
+                    !token.Contains(
+                        '_')) //Checks if token is a number, if not clear list and break without adding to main list
+                {
+                    tokenIdList.Item1.Clear();
+                    break;
+                }
+
+
+                if (int.TryParse(token[0].ToString(),
+                        out var result)) //Takes care of retention time numbers and array positions
+                {
+                    foreach (var subString in token)
+                        tokenIdList.Item1.Add(vocab.Find(x => x.TokenWord == subString.ToString()).Id);
+                }
+                else
+                {
+                    if (vocab.Any(x =>
+                            x.TokenWord ==
+                            token)) //takes all the other non numerical tokens and adds their id to the list
+                    {
+                        tokenIdList.Item1.Add(vocab.Find(x => x.TokenWord == token).Id);
+                    }
+                }
+            }
+
+            if (tokenIdList.Item1.Count != 0) //Empty list is not added to main list
+                tokenIdList =
+                    (PaddingIntegerList(tokenIdList.Item1, 0,
+                        100), tokenList.Item2); //makes sure padding is done right with desired length
             else
                 continue;
 
