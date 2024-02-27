@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Text;
+using System.Text.RegularExpressions;
 using Easy.Common.Extensions;
 using MathNet.Numerics.Statistics;
 using TorchSharp;
@@ -25,7 +26,10 @@ namespace MLDockerTrainer.Utils
                 Dictionary<string, double> fullSequenceAndRetentionTimeDictionary = new Dictionary<string, double>();
 
                 var psms = Readers.SpectrumMatchTsvReader.ReadPsmTsv(file, out var warnings)
-                    .Where(x => x.AmbiguityLevel == "1");
+                    .Where(x => x.AmbiguityLevel == "1" &&
+                                x.DecoyContamTarget.Equals("T") &&
+                                x.QValue < 0.01 && 
+                                x.PEP < 0.5);
 
                 psms.ForEach(x => fullSequenceAndRetentionTimeDictionary.Add(x.FullSequence, x.RetentionTime is not null ? x.RetentionTime.Value : 0));
 
@@ -121,6 +125,18 @@ namespace MLDockerTrainer.Utils
             foreach (var sequence in RetentionTimeDictionary)
             {
                 var row = dataTable.NewRow();
+
+                ////regex to replace outer brackets with *, not inner ones
+                //string replacedBracketsWithStar = Regex.Replace(sequence.Key,
+                //    "(?<=[A-HJ-Z])\\[|(?<=\\[)[A-HJ-Z](?=\\])|(?<=[A-HJ-Z])\\](?=$|[A-Z]|(?<=\\])[^A-Z])",
+                //    "*");
+
+                ////regex to replace between * and : inside the mod 
+                //string noColonModWithStar = Regex.Replace(replacedBracketsWithStar, "\\*(.*?):",
+                //    "*");
+
+                //row["FullSequence"] = noColonModWithStar.ToString();
+
                 row["FullSequence"] = sequence.Key;
 
                 var retentionTimes = sequence.Value.Item1;

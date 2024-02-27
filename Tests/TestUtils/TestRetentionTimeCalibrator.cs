@@ -11,9 +11,10 @@ namespace Tests.TestUtils
             List<string> paths = new();
             foreach (var file in Directory.GetFiles(@"C:\Users\elabo\Documents\MannPeptideResults"))
             {
-                if (file.Contains("tides.psmtsv") && !file.Contains(".txt"))
+                if (file.Contains("AllPeptides.psmtsv") && !file.Contains(".txt"))
                 {
                     paths.Add(file);
+                    break;
                 }
             }
 
@@ -21,7 +22,7 @@ namespace Tests.TestUtils
 
             var csv = calibrator.GetDataAsDataTable();
 
-            RetentionTimeCalibrator.ToCSV(csv, @"C:\Users\elabo\Documents\MannPeptideResults\CalibratorTestingMultipleFiles.csv");
+            RetentionTimeCalibrator.ToCSV(csv, @"C:\Users\elabo\Documents\MannPeptideResults\CalibratorTestingMultipleFilesSmallFiltered.csv");
         }
 
         [Test]
