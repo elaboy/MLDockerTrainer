@@ -71,8 +71,10 @@ namespace MLDockerTrainer.Utils
                 Dictionary<string, double> fullSequenceAndRetentionTimeDictionary = new Dictionary<string, double>();
 
                 var psms = Readers.SpectrumMatchTsvReader.ReadPsmTsv(file, out var warnings)
-                    .Where(x => x.AmbiguityLevel == "1")
-                    .OrderBy(x => x.RetentionTime);
+                    .Where(x => x.AmbiguityLevel == "1" &&
+                           x.DecoyContamTarget.Equals("T") &&
+                           x.QValue < 0.01 &&
+                           x.PEP < 0.5);
 
                 psms.ForEach(x => 
                     fullSequenceAndRetentionTimeDictionary
@@ -105,10 +107,10 @@ namespace MLDockerTrainer.Utils
                 RetentionTimeDictionary.Add(sequence, (retentionTimeList.ToArray(), retentionTimeList.Average(), retentionTimeList.Variance()));
             }
             //order retention times by the mean
-            RetentionTimeDictionary = RetentionTimeDictionary
-                .OrderBy(x => x.Value.Item2)
-                .ToDictionary(x => x.Key, 
-                    x => x.Value);
+            RetentionTimeDictionary = RetentionTimeDictionary;
+            //.OrderBy(x => x.Value.Item2)
+            //.ToDictionary(x => x.Key, 
+            //    x => x.Value);
         }
 
         public DataTable GetDataAsDataTable()
